@@ -6,42 +6,55 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+    </style>
 </head>
 
 <body>
-    <div class="textElem"></div>
+    <div contenteditable="true" id="textarea" style="height: 500px;border: 1px solid #ace"></div>
     <script>
-        const textElem = document.querySelector('textElem')
+        const textarea = document.querySelector('#textarea')
         // First, ask the Permissions API if we have some kind of access to
         // the "clipboard-read" feature.
+        void (async () => {
+            const result = await navigator
+                .permissions
+                .query({ name: "clipboard-read" })
 
-        navigator
-            .permissions
-            .query({ name: "clipboard-read" })
-            .then((result) => {
-                // If permission to read the clipboard is granted or if the user will
-                // be prompted to allow it, we proceed.
-                console.log(result);
-                if (result.state == "granted" || result.state == "prompt") {
-                    navigator
-                    .clipboard
-                    .read()
-                    .then((data) => {
-                        for (let i = 0; i < data.length; i++) {
-                            if (!data[i].types.includes("image/png")) {
-                                alert("Clipboard contains non-image data. Unable to access it.");
-                            } else {
-                                data[i]
-                                .getType("image/png")
-                                .then((blob) => {
-                                    imgElem.src = URL.createObjectURL(blob);
-                                });
-                            }
-                        }
-                    });
+            if (result.state == "granted" || result.state == "prompt") {
+                const data = await navigator.clipboard.read()
+                console.log(data, data.length);
+                for (let i = 0; i < data.length; i++) {
+                    console.dir(data[i]);
+                    if (!data[i].types.includes("image/png")) {
+                        console.log("Clipboard contains non-image data. Unable to access it.");
+                    }
+                    for(let j = 0;j < data[i].types.length;j++) {
+                        const blob = await data[i].getType(data[i].types[j])
+                            const html = await blob.text()
+                            textarea.innerHTML += html
+                    }
+                    // if(data[i].types.includes('text/html')) {
+                    //     const html = await data[i].getType('text/html')
+                    //     textarea.innerHTML += await html.text()
+                    // }
+                    {
+
+                        // const blob = await data[i]
+                        //     .getType("image/png")
+                        // console.log(blob);
+                        // const obj = URL.createObjectURL(blob);
+                        // imgElem.src = obj;
+                        // URL.revokeObjectURL(obj);
+                    }
                 }
-            });
-
+            }
+        })();
     </script>
 </body>
 
