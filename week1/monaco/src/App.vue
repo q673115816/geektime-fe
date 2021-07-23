@@ -1,21 +1,27 @@
 <template>
-  <div>
-    {{ message }}
-  </div>
+  <div>{{ message }}</div>
+  <div ref="container"></div>
 </template>
 
 <script lang="ts" setup>
-import {ref} from 'vue'
-const message = ref('hello world2')
+import { ref, onMounted, defineExpose } from 'vue'
+import monaco from 'monaco-editor
+ref: container = null
+ref: value = ''
+ref: message = 'hello world2';
+onMounted(() => {
+  // if (container.value) {
+  //   monaco.editor.create(
+  //     container.value,
+  //     value,
+  //   )
+  // }
+})
+
+defineExpose({
+  container
+})
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
 </style>
