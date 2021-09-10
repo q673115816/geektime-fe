@@ -2,10 +2,11 @@ class Client {
     constructor() {
         const canvas = document.querySelector('canvas')
         this.canvas = canvas
+        this.message = document.querySelector('#message')
         this.rect = canvas.getBoundingClientRect()
         this.ctx = canvas.getContext('2d')
         this.START = false
-        this.path = {}
+        this.paths = {}
         this.init()
     }
 
@@ -17,7 +18,7 @@ class Client {
     initSocket() {
         const username = Math.random()
         // document.querySelector('body').innerHTML += username
-        const url = 'http://localhost:3333'
+        const url = 'http://localhost:2000'
         this.socket = io(url, { autoConnect: false })
         this.socket.auth = { username }
 
@@ -31,8 +32,10 @@ class Client {
             console.log(data);
         })
 
-        this.socket.on('joined', (data, id) => {
-            console.log('加入房间：', data, id);
+        this.socket.on('joined', ({ room, paths }, id) => {
+            console.log('加入房间：', { room, paths }, id);
+            this.paths = paths
+            this.initDraw()
         })
 
         this.socket.on('otherjoin', (data, id) => {
@@ -43,10 +46,15 @@ class Client {
             console.log(data);
         })
 
-        this.socket.on('path', ({ hash, path }) => {
-            if (!this.path[hash]) this.path[hash] = []
-            this.path[hash].push(path)
-            this.drow()
+        this.socket.on('path', (path) => {
+            this.draw(path)
+        })
+
+        this.socket.on('clear', () => {
+            console.log('清屏')
+            this.message.innerHTML += '清屏\n'
+            this.paths = {}
+            this.ctx.clearRect(0, 0, this.rect.width, this.rect.height)
         })
     }
 
@@ -61,7 +69,7 @@ class Client {
             const x = clientX
             const y = clientY - this.rect.top
             this.ctx.beginPath(x, y)
-            this.path[this.START] = [[x, y]]
+            this.paths[this.START] = [[x, y]]
             this.socket.emit('path', {
                 hash: this.START,
                 path: [
@@ -76,7 +84,7 @@ class Client {
             console.log(clientX, clientY)
             const x = clientX
             const y = clientY - this.rect.top
-            this.path[this.START].push([x, y])
+            this.paths[this.START].push([x, y])
             this.socket.emit('path', {
                 hash: this.START,
                 path: [
@@ -93,14 +101,15 @@ class Client {
     }
 
 
-    drow() {
+    initDraw() {
         const { width, heigt } = this.rect
-        
+
         this.ctx.clearRect(0, 0, width, heigt)
-        for (const hash in this.path) {
-            this.path[hash].forEach((point, i) => {
+        for (const hash in this.paths) {
+            this.paths[hash].forEach((point, i) => {
                 if (i === 0) {
-                    this.ctx.beginPath(...point)
+                    this.ctx.beginPath()
+                    this.ctx.moveTo(...point)
                 } else {
                     this.ctx.lineTo(...point)
                     this.ctx.stroke()
@@ -109,6 +118,30 @@ class Client {
         }
     }
 
+    draw({ hash, path }) {
+        // console.log('other draw', this.paths)
+        if (!this.paths[hash]) this.paths[hash] = []
+        else {
+            const start =
+                this.paths[hash][this.paths[hash].length - 1]
+            this.ctx.beginPath()
+            this.ctx.moveTo(...start)
+            this.ctx.lineTo(...path)
+            this.ctx.stroke()
+        }
+        this.paths[hash].push(path)
+        // this.ctx.save()
+    }
+
+    clear() {
+        this.socket.emit('clear')
+    }
 }
 
-new Client()
+const client = new Client()
+
+document
+    .querySelector('#clear')
+    .addEventListener('click', () => {
+        client.clear()
+    })

@@ -18,7 +18,21 @@
             overflow: hidden;
         }
 
+        main {
+            display: flex;
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        pre {
+            width: 200px;
+            min-width: 10vw;
+        }
+
         canvas {
+            display: block;
             width: 100%;
             aspect-ratio: 16 / 9;
             border: 1px dashed;
@@ -28,10 +42,16 @@
 </head>
 <body>
     <header>
-        <button>pen</button>
-        <button></button>
+        <button type="button" id="clear">清屏(每60秒清屏)</button>
     </header>
-    <canvas></canvas>
+    <main>
+        <div class="flex-1">
+            <canvas></canvas>
+        </div>
+        <aside>
+            <pre id="message"></pre>
+        </aside>
+    </main>
     <script src="https://unpkg.com/socket.io-client/dist/socket.io.js"></script>
     <script src="./client.js" type="module"></script>
 </body>
